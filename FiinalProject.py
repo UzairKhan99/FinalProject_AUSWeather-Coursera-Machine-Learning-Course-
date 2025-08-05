@@ -100,4 +100,6 @@ y = df["RainToday"]
 X = df.drop("RainToday", axis=1, inplace=True)
 ## Exercise 3. How balanced are the classes?
 print(y.value_counts())
-assa
+
+
+## Exercise 5. Split data into training and test sets, ensuring target stratification
