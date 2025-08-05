@@ -100,3 +100,4 @@ y = df["RainToday"]
 X = df.drop("RainToday", axis=1, inplace=True)
 ## Exercise 3. How balanced are the classes?
 print(y.value_counts())
+assa
