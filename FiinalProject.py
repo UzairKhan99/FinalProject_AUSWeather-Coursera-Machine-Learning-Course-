@@ -49,7 +49,7 @@ df = df.drop(columns=["Date"])
 y = df["RainToday"]
 X = df.drop("RainToday", axis=1)
 
-# ✅ Drop rows with NaNs in target
+# Drop rows with NaNs in target
 X = X[y.notna()]
 y = y[y.notna()]
 
@@ -62,12 +62,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 ## Exercise 6. Automatically detect numerical and categorical columns
-numerical_features = X_train.select_dtypes(
-    include=["int64", "float64"]
-).columns.tolist()
-object_features = X_train.select_dtypes(
-    include=["object", "category", "bool"]
-).columns.tolist()
+numerical_features = X_train.select_dtypes(include="number").columns.tolist()
+object_features = X_train.select_dtypes(exclude="number").columns.tolist()
 
 # Define preprocessing steps
 numeric_transformer = Pipeline(
@@ -105,7 +101,7 @@ param_grid = {
 }
 
 # Setup stratified K-Fold
-cv = StratifiedKFold(n_splits=5, shuffle=True)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 ## Exercise 9. Instantiate and fit GridSearchCV to the pipeline
 grid_search = GridSearchCV(
@@ -125,8 +121,7 @@ print("Test score:", test_score)
 y_pred = grid_search.predict(X_test)
 
 ## Exercise 12. Print the classification report
-
-print("classification_report:", classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 
 ## Exercise 13. Plot the confusion matrix
 conf_matrix = confusion_matrix(y_test, y_pred)
@@ -137,4 +132,31 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.tight_layout()
 plt.show()
-a
+
+## Exercise 14. Extract the feature importances
+# Get feature importances and names
+feature_importances = grid_search.best_estimator_["classifier"].feature_importances_
+feature_names = numerical_features + list(
+    grid_search.best_estimator_["preprocessor"]
+    .named_transformers_["cat"]
+    .named_steps["onehot"]
+    .get_feature_names_out(object_features)
+)
+
+# Create and plot importance dataframe
+importance_df = pd.DataFrame(
+    {"Feature": feature_names, "Importance": feature_importances}
+).sort_values("Importance", ascending=False)
+
+N = 20
+plt.figure(figsize=(10, 6))
+plt.barh(
+    importance_df["Feature"].head(N),
+    importance_df["Importance"].head(N),
+    color="skyblue",
+)
+plt.gca().invert_yaxis()
+plt.title(f"Top {N} Most Important Features")
+plt.xlabel("Importance Score")
+plt.tight_layout()
+plt.show()
